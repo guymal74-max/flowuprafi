@@ -1,0 +1,45 @@
+[
+  {
+    "contact": "חחח",
+    "accountNum": "555",
+    "extras": [],
+    "serialCounter": 1,
+    "phone": "חחח",
+    "budget": "1000000",
+    "siteManager": "חיחח",
+    "transactions": [
+      {
+        "id": "1771924050295",
+        "serial": 1,
+        "desc": "מקדמה",
+        "date": "2026-02-24",
+        "demand": "500000",
+        "terms": "מקדמה כספית",
+        "approved": "20000",
+        "appDate": "2026-02-23",
+        "reminder": "",
+        "status": "approved",
+        "notes": "",
+        "contactPerson": "כככ",
+        "method": "email",
+        "history": []
+      }
+    ],
+    "manager": "ימנייי",
+    "email": "",
+    "client": "5555",
+    "receipts": [
+      {
+        "id": 1771924065397,
+        "date": "2026-02-24",
+        "amount": "20000",
+        "invoice": "455555",
+        "notes": "שוטף +30"
+      }
+    ],
+    "name": "גיא",
+    "managerPhone": "5655",
+    "id": 1771923938008,
+    "siteManagerPhone": "4444"
+  }
+]

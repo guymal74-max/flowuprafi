@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1E3A5F">
+<title>ניהול גבייה - קבוצת רפי שפירא</title>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  :root {
+    --primary:      #1E3A5F;
+    --primary-mid:  #2D6A9F;
+    --primary-light:#EBF2FA;
+    --accent:       #E8A838;
+    --success:      #27AE60;
+    --warning:      #E67E22;
+    --danger:       #C0392B;
+    --bg:           #F0F4F8;
+    --card-bg:      #FFFFFF;
+    --border:       #D5E0EC;
+    --text-dark:    #1F2933;
+    --text-mid:     #4B5563;
+    --text-light:   #7B8BA5;
+    --radius:       12px;
+    --shadow:       0 2px 12px rgba(30,58,95,0.08);
+    --shadow-hover: 0 6px 24px rgba(30,58,95,0.14);
+    --ai-color:     #6c5ce7;
+    --whatsapp:     #25D366;
+    --email:        #0984e3;
+    --manager-bg:   #FFF3CD;
+    --manager-text: #B7791F;
+    --site-bg:      #E0F7FA;
+    --site-text:    #006064;
+    --gauge-bg:     #F8FAFC;
+    --gauge-border: #E2E8F0;
+  }
+
+  body.dark-mode {
+    --primary:      #2D6A9F;
+    --primary-mid:  #4B8BBE;
+    --bg:           #121212;
+    --card-bg:      #1E1E1E;
+    --border:       #333;
+    --text-dark:    #F0F4F8;
+    --text-mid:     #B2BEC3;
+    --text-light:   #7B8BA5;
+    --shadow:       0 2px 12px rgba(0,0,0,0.5);
+    --gauge-bg:     #252525;
+    --gauge-border: #444;
+    --manager-bg:   #3e3308;
+    --manager-text: #f1c40f;
+    --site-bg:      #00363a;
+    --site-text:    #4dd0e1;
+  }
+
+  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--text-dark); direction: rtl; min-height: 100vh; transition: background-color 0.3s, color 0.3s; }
+  header { background: var(--primary); color: #fff; padding: 0 28px; height: 66px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 10px rgba(0,0,0,0.2); position: sticky; top: 0; z-index: 100; }
+  .logo-area { display: flex; align-items: center; gap: 15px; cursor: pointer; text-align: right; }
+  .logo-area h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: 0.5px; line-height: 1.1; margin:0; }
+  .logo-area small { font-size: 0.75rem; opacity: 0.85; font-weight: bold; }
+  #customLogoImg { max-height: 40px; display: none; border-radius: 4px; }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .cloud-status { display: flex; align-items: center; gap: 8px; padding: 4px 14px; border-radius: 20px; font-size: 0.82rem; font-weight: 700; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); transition: all 0.3s; cursor: default; color: white; }
+  .cloud-status.connected { background: rgba(39, 174, 96, 0.2); border-color: var(--success); }
+  .cloud-status.connecting { background: rgba(230, 126, 34, 0.2); border-color: var(--warning); }
+  .cloud-status.error { background: rgba(192, 57, 43, 0.2); border-color: var(--danger); }
+  .cloud-dot { width: 9px; height: 9px; border-radius: 50%; background: currentColor; }
+  .cloud-dot.pulse { animation: pulseCloud 1.4s infinite; }
+  @keyframes pulseCloud { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.7); } }
+  .theme-btn { background: rgba(255,255,255,0.15); border: none; border-radius: 50%; width: 36px; height: 36px; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; color: white; }
+  .theme-btn:hover { background: rgba(255,255,255,0.25); }
+  .header-date { background: rgba(255,255,255,0.15); border-radius: 20px; padding: 4px 14px; font-size: 0.85rem; font-weight: 600; }
+  .toolbar { background: var(--card-bg); border-bottom: 1.5px solid var(--border); padding: 14px 28px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; box-shadow: 0 4px 10px var(--shadow); margin: 20px 28px; border-radius: var(--radius); }
+  .btn { padding: 9px 18px; border-radius: 8px; border: 1.5px solid transparent; font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: all 0.18s; display: inline-flex; align-items: center; gap: 6px; font-family: inherit; }
+  .btn-primary { background: var(--primary-mid); color: #fff; }
+  .btn-primary:hover { background: var(--primary); }
+  .btn-success { background: var(--success); color: #fff; }
+  .btn-success:hover { opacity: 0.9; }
+  .btn-danger  { background: var(--danger); color: #fff; }
+  .btn-danger:hover { opacity: 0.88; }
+  .btn-outline { background: var(--card-bg); border-color: var(--border); color: var(--text-mid); }
+  .btn-outline:hover { border-color: var(--primary-mid); color: var(--primary-mid); background: var(--primary-light); }
+  .btn-gold { background: var(--accent); color: #fff; }
+  .btn-gold:hover { opacity: 0.9; }
+  .btn-ai { background: linear-gradient(135deg, #a29bfe, #6c5ce7); color: white; border: none; }
+  .search-box { margin-right: auto; position: relative; }
+  .search-box input { padding: 9px 16px 9px 36px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.88rem; width: 260px; outline: none; transition: border-color 0.2s; background: var(--card-bg); color: var(--text-dark); }
+  .search-box input:focus { border-color: var(--primary-mid); }
+  .search-box::before { content: '🔍'; position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 0.85rem; }
+  .container { padding: 0 28px 40px; }
+  #projectGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; }
+  .project-card { background: var(--card-bg); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden; transition: box-shadow 0.2s, transform 0.2s; cursor: pointer; display: flex; flex-direction: column; }
+  .project-card:hover { box-shadow: var(--shadow-hover); transform: translateY(-3px); }
+  .card-header { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-mid) 100%); color: #fff; padding: 14px 18px; display: flex; justify-content: space-between; align-items: flex-start; }
+  .card-id { font-size: 0.75rem; opacity: 0.8; font-weight:bold; }
+  .card-name { font-size: 1.1rem; font-weight: 700; margin-top: 2px; }
+  .card-client { font-size: 0.85rem; opacity: 0.9; margin-top: 2px; }
+  .card-body { padding: 18px; flex-grow: 1; }
+  .progress-row { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+  .donut-wrap { position: relative; width: 75px; height: 75px; flex-shrink: 0; }
+  .donut-wrap svg { transform: rotate(-90deg); width: 100%; height: 100%; }
+  .donut-track { fill: none; stroke: var(--border); stroke-width: 6; }
+  .donut-fill  { fill: none; stroke-width: 6; stroke-linecap: round; transition: stroke-dashoffset 1s ease-out; }
+  .donut-pct { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 800; color: var(--text-dark); }
+  .card-stats { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+  .stat-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; }
+  .stat-label { color: var(--text-light); font-weight: 600; }
+  .stat-val { font-weight: 700; color: var(--text-dark); }
+  .stat-val.green  { color: var(--success); }
+  .card-footer { border-top: 1px solid var(--border); padding: 12px 18px; display: flex; justify-content: space-between; align-items: center; background: var(--gauge-bg); }
+  .contact-info { font-size: 0.8rem; color: var(--text-light); font-weight: 600;}
+  .contact-info span { display: block; color: var(--text-dark); font-weight: 700; font-size: 0.9rem; margin-top: 2px; }
+  .icon-btn { border: none; border-radius: 50%; width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.2s, opacity 0.2s; box-shadow: 0 2px 5px var(--shadow); text-decoration: none; font-style: normal; font-size: 1.1rem; }
+  .icon-btn:hover { transform: scale(1.1); opacity: 0.9; }
+  .wa-bg { background: var(--whatsapp); color: white; }
+  .mail-bg { background: var(--email); color: white; }
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); z-index: 3000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+  .modal-content { background: var(--card-bg); border-radius: 16px; width: 95vw; max-width: 600px; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 25px 60px rgba(0,0,0,0.3); animation: modalIn 0.3s ease-out; }
+  .modal-content.large { max-width: 1200px; }
+  @keyframes modalIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  .modal-header { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-mid) 100%); color: white; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; border-radius: 16px 16px 0 0; }
+  .modal-header h3 { margin: 0; font-size: 1.3rem; font-weight: 800; }
+  .close-modal { background: none; border: none; font-size: 1.8rem; color: rgba(255,255,255,0.8); cursor: pointer; transition: color 0.2s; }
+  .close-modal:hover { color: white; }
+  .modal-body { padding: 24px; overflow-y: auto; flex-grow: 1; }
+  .form-group { margin-bottom: 16px; }
+  .form-group label { display: block; font-size: 0.85rem; font-weight: 700; color: var(--text-mid); margin-bottom: 6px; }
+  .form-control, select, textarea { width: 100%; padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.95rem; font-family: inherit; background: var(--card-bg); color: var(--text-dark); transition: border-color 0.2s; }
+  .form-control:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary-mid); }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .detail-contact-box { background: var(--gauge-bg); padding: 12px 16px; border-radius: 10px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .contact-label { font-size: 0.75rem; color: var(--text-light); font-weight: 700; display: block; margin-bottom: 2px;}
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .stat-box { padding: 16px; border-radius: 12px; border-right: 5px solid; background: var(--gauge-bg); }
+  .stat-box.blue { border-color: var(--primary-mid); }
+  .stat-box.gold { border-color: var(--accent); background: var(--manager-bg); }
+  .stat-box.green { border-color: var(--success); background: var(--site-bg); }
+  .stat-box.red { border-color: var(--danger); }
+  .stat-box label { font-size: 0.85rem; font-weight: 700; opacity: 0.8; margin-bottom: 4px; display: block; }
+  .stat-box .val { font-size: 1.3rem; font-weight: 800; }
+  table { width: 100%; border-collapse: separate; border-spacing: 0; margin-bottom: 24px; text-align: right; }
+  th { background: var(--gauge-bg); padding: 12px; font-weight: 800; color: var(--text-dark); border-bottom: 2px solid var(--border); }
+  td { padding: 12px; border-bottom: 1px solid var(--border); color: var(--text-dark); font-size: 0.95rem; }
+  .table-section { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 24px; }
+  .table-header { padding: 16px; display: flex; justify-content: space-between; align-items: center; background: var(--gauge-bg); border-bottom: 1px solid var(--border); }
+  .table-header h4 { margin: 0; font-size: 1.1rem; color: var(--primary); display: flex; align-items: center; gap: 8px;}
+  .chat-container { max-height: 300px; overflow-y: auto; background: var(--gauge-bg); border-radius: 8px; padding: 12px; border: 1px solid var(--border); margin-bottom: 16px; }
+  .chat-msg { background: var(--card-bg); padding: 12px; border-radius: 8px; margin-bottom: 10px; border-right: 4px solid var(--primary-mid); box-shadow: 0 1px 3px var(--shadow); }
+  .chat-meta { font-size: 0.75rem; color: var(--text-light); margin-bottom: 6px; font-weight: 600; }
+  .ai-result-box { background: rgba(108, 92, 231, 0.05); border: 2px dashed var(--ai-color); padding: 16px; border-radius: 8px; margin-top: 16px; font-family: inherit; white-space: pre-wrap; line-height: 1.5; }
+  .toast-container { position: fixed; bottom: 24px; left: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+  .toast { background: var(--card-bg); border-right: 4px solid var(--success); color: var(--text-dark); padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 0.95rem; font-weight: 600; display: flex; align-items: center; gap: 10px; animation: toastIn 0.3s ease-out, toastOut 0.3s ease-in 3.5s forwards; }
+  .toast.error { border-right-color: var(--danger); }
+  @keyframes toastIn { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  @keyframes toastOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(-100%); opacity: 0; } }
+  .has-alert { animation: pulseRed 2s infinite; border: 2px solid var(--danger) !important; }
+  @keyframes pulseRed { 0% { box-shadow: 0 0 0 0 rgba(192, 57, 43, 0.4); } 100% { box-shadow: 0 0 0 0 rgba(192, 57, 43, 0); } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-area" onclick="document.getElementById('logoInput').click()" title="לחץ להחלפת לוגו">
+    <input type="file" id="logoInput" style="display:none" accept="image/*" onchange="window.uploadLogo(this)">
+    <div id="defaultLogo">
+      <h1>קבוצת רפי שפירא</h1>
+      <small>ניהול גבייה חכם</small>
+    </div>
+    <img id="customLogoImg" alt="Logo">
+  </div>
+  <div class="header-left">
+    <div id="cloudStatusBadge" class="cloud-status connecting">
+      <div class="cloud-dot pulse" id="cloudDot"></div>
+      <span id="cloudStatusText">מתחבר לענן...</span>
+    </div>
+    <div class="header-date" id="currentDate">--/--/----</div>
+    <button class="theme-btn" onclick="window.toggleTheme()" title="שנה מצב תצוגה">🌓</button>
+  </div>
+</header>
+
+<div class="toolbar">
+  <div style="display:flex; gap:12px; align-items:center; flex-grow: 1;">
+    <button class="btn btn-primary" onclick="window.openNewProjectModal()">➕ פרויקט חדש</button>
+    <div class="search-box">
+      <input type="text" id="mainSearch" placeholder="חיפוש לפי שם פרויקט או מספר..." onkeyup="window.renderGrid()">
+    </div>
+  </div>
+  <div style="display:flex; gap:10px; flex-wrap:wrap;">
+    <button class="btn btn-success" onclick="window.exportToExcelPro()">📊 ייצוא לאקסל</button>
+    <button class="btn btn-outline" onclick="window.downloadBackup()">💾 גיבוי</button>
+    <button class="btn btn-outline" onclick="document.getElementById('fileInput').click()">📂 שחזור</button>
+    <button class="btn btn-outline" style="border-color:var(--primary-mid); color:var(--primary-mid);" onclick="window.showToast('המערכת כבר מחוברת באופן קבוע לענן של רפי שפירא!')">☁️ ענן מחובר</button>
+    <input type="file" id="fileInput" style="display:none" onchange="window.restoreBackup(this)" accept=".json">
+  </div>
+</div>
+
+<div class="container">
+  <div id="projectGrid"></div>
+  <div id="emptyState" style="text-align:center; padding:5rem; color:var(--text-light); display:none;">
+    <h2>אין פרויקטים להצגה</h2>
+    <p>לחץ על "פרויקט חדש" כדי להתחיל</p>
+  </div>
+</div>
+
+<div id="projectModal" class="modal-overlay">
+  <div class="modal-content large">
+    <div class="modal-header">
+      <div>
+        <h3 id="dtName">שם הפרויקט</h3>
+        <div style="font-size:0.9rem; opacity:0.9; margin-top:4px;">חשבון: <span id="dtAccountNum" style="font-weight:700;"></span></div>
+      </div>
+      <div style="display:flex; gap:12px; align-items: center;">
+        <button class="btn btn-outline" style="border-color:rgba(255,255,255,0.4); color:white; background:rgba(255,255,255,0.1);" onclick="window.editProjectDetails()">✏️ עריכת פרטים</button>
+        <button class="close-modal" onclick="window.closeModal('projectModal')">&times;</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:16px; margin-bottom:24px;" id="contactsArea"></div>
+      <div class="stats-grid">
+        <div class="stat-box blue"><label>תקציב + חריגות</label><div class="val" id="dtTotalBudget" style="color:var(--text-dark);">₪0</div></div>
+        <div class="stat-box gold"><label style="color:var(--manager-text);">חשבונות שאושרו</label><div class="val" id="dtTotalApproved" style="color:var(--manager-text);">₪0</div></div>
+        <div class="stat-box green"><label style="color:var(--site-text);">סה"כ תקבולים</label><div class="val" id="dtReceiptsTotal" style="color:var(--site-text);">₪0</div></div>
+        <div class="stat-box red"><label style="color:var(--danger);">יתרה לתשלום</label><div class="val" id="dtRemaining" style="color:var(--danger);">₪0</div></div>
+      </div>
+      <div class="table-section">
+        <div class="table-header"><h4>⚡ תוספות חריגות לתקציב</h4><button class="btn btn-gold" style="padding:6px 12px; font-size:0.85rem;" onclick="window.openExtraModal()">➕ הוסף חריגה</button></div>
+        <div style="overflow-x:auto;"><table id="extrasTable" style="margin:0;"><thead><tr><th>תאריך</th><th>תיאור</th><th>מאשר</th><th>אסמכתא</th><th>סכום</th><th>פעולות</th></tr></thead><tbody id="extrasTableBody"></tbody></table></div>
+      </div>
+      <div class="table-section">
+        <div class="table-header"><h4>📑 פירוט דרישות וחשבונות לתשלום</h4><button class="btn btn-primary" style="padding:6px 12px; font-size:0.85rem;" onclick="window.openTransModal()">➕ חשבון חדש</button></div>
+        <div style="overflow-x:auto;"><table id="transTable" style="margin:0;"><thead><tr><th>מס'</th><th>תאריך</th><th>תיאור</th><th>גורם מטפל</th><th>פנייה</th><th>הוגש</th><th>אושר</th><th>סטטוס</th><th>פעולות</th></tr></thead><tbody id="transTableBody"></tbody></table></div>
+      </div>
+      <div class="table-section" style="margin-bottom:0;">
+        <div class="table-header"><h4 style="color:var(--success);">💰 תיעוד תקבולים וחשבוניות מס</h4><button class="btn btn-success" style="padding:6px 12px; font-size:0.85rem;" onclick="window.openReceiptModal()">➕ תיעוד תשלום</button></div>
+        <div style="overflow-x:auto;"><table id="receiptsTable" style="margin:0;"><thead><tr><th>תאריך</th><th>מס' חשבונית/אסמכתא</th><th>הערות</th><th>סכום שהתקבל</th><th>פעולות</th></tr></thead><tbody id="receiptsTableBody"></tbody></table></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="editModal" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header"><h3>פרטי פרויקט</h3><button class="close-modal" onclick="window.closeModal('editModal')">&times;</button></div>
+    <div class="modal-body">
+      <form onsubmit="window.saveProject(event)">
+        <input type="hidden" id="epId">
+        <div class="form-grid"><div class="form-group"><label>שם הפרויקט</label><input type="text" id="epName" class="form-control" required></div><div class="form-group"><label>מספר חשבון</label><input type="text" id="epAccountNum" class="form-control"></div></div>
+        <div class="form-group"><label>שם לקוח / חברה</label><input type="text" id="epClient" class="form-control" required></div>
+        <div style="background:var(--gauge-bg); padding:16px; border-radius:12px; border:1px solid var(--border); margin-bottom:16px;">
+          <div style="font-weight:800; margin-bottom:12px; font-size:0.9rem;">איש קשר (לקוח)</div>
+          <div class="form-grid"><div class="form-group"><label>שם</label><input type="text" id="epContact" class="form-control"></div><div class="form-group"><label>טלפון</label><input type="text" id="epPhone" class="form-control" dir="ltr" style="text-align:right;"></div></div>
+          <div class="form-group" style="margin-bottom:0;"><label>מייל</label><input type="email" id="epEmail" class="form-control" dir="ltr" style="text-align:right;"></div>
+        </div>
+        <div class="form-grid">
+          <div style="background:var(--manager-bg); padding:12px; border-radius:12px;"><label style="color:var(--manager-text);">מנהל פרויקט</label><input type="text" id="epManager" class="form-control" placeholder="שם" style="margin-bottom:8px;"><input type="text" id="epManagerPhone" class="form-control" placeholder="טלפון" dir="ltr" style="text-align:right;"></div>
+          <div style="background:var(--site-bg); padding:12px; border-radius:12px;"><label style="color:var(--site-text);">מנהל עבודה</label><input type="text" id="epSiteManager" class="form-control" placeholder="שם" style="margin-bottom:8px;"><input type="text" id="epSiteManagerPhone" class="form-control" placeholder="טלפון" dir="ltr" style="text-align:right;"></div>
+        </div>
+        <div class="form-group" style="margin-top:16px;"><label>תקציב חוזה מקורי (₪)</label><input type="number" id="epBudget" class="form-control" required min="0"></div>
+        <div style="display:flex; justify-content:space-between; margin-top:24px; padding-top:16px; border-top:1px solid var(--border);"><button type="button" id="btnDeleteProject" onclick="window.deleteProject()" class="btn btn-outline" style="color:var(--danger); border-color:var(--danger);">מחק פרויקט</button><button type="submit" class="btn btn-primary" style="min-width:120px;">שמירה</button></div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div id="transModalWindow" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header"><h3>פרטי חשבון / דרישת תשלום</h3><button class="close-modal" onclick="window.closeModal('transModalWindow')">&times;</button></div>
+    <div class="modal-body">
+      <form onsubmit="window.saveTransaction(event)">
+        <input type="hidden" id="trId">
+        <div class="form-group"><label>תיאור החשבון</label><input type="text" id="trDesc" class="form-control" required></div>
+        <div class="form-grid"><div class="form-group"><label>תאריך הגשה</label><input type="date" id="trDate" class="form-control" required></div><div class="form-group"><label>תזכורת לגבייה</label><input type="date" id="trReminder" class="form-control"></div></div>
+        <div style="background:var(--gauge-bg); padding:16px; border-radius:12px; border:1px solid var(--border); margin-bottom:16px;">
+          <div style="font-weight:800; margin-bottom:12px; font-size:0.9rem;">פרטי התקשרות וטיפול</div>
+          <div class="form-grid"><div class="form-group"><label>אופן פנייה</label><select id="trMethod" class="form-control"><option value="email">מייל</option><option value="phone">טלפון</option><option value="whatsapp">וואטסאפ</option></select></div><div class="form-group"><label>גורם מטפל (שם)</label><input type="text" id="trContactPerson" class="form-control"></div></div>
+          <div class="form-group" style="margin-bottom:0;"><label>תנאי תשלום</label><select id="trTerms" class="form-control"><option value="">בחר...</option><option value="מקדמה כספית">מקדמה כספית</option><option value="מקדמה כנגד ערבות">מקדמה כנגד ערבות</option><option value="שוטף">שוטף</option><option value="שוטף 30">שוטף 30</option><option value="שוטף 60">שוטף 60</option><option value="שוטף 90">שוטף 90</option></select></div>
+        </div>
+        <div class="form-grid"><div class="form-group"><label>סכום שהוגש לאישור (₪)</label><input type="number" id="trDemand" class="form-control" min="0"></div><div class="form-group"><label>סכום שאושר לתשלום (₪)</label><input type="number" id="trApproved" class="form-control" min="0"></div></div>
+        <div class="form-grid"><div class="form-group"><label>תאריך אישור</label><input type="date" id="trAppDate" class="form-control"></div><div class="form-group"><label>סטטוס</label><select id="trStatus" class="form-control"><option value="sent">🔴 נשלח לאישור</option><option value="approved">🟢 אושר</option></select></div></div>
+        <div class="form-group"><label>הערות כלליות</label><textarea id="trNotes" class="form-control" rows="2"></textarea></div>
+        <button type="submit" class="btn btn-primary" style="width:100%; padding:12px;">שמור פרטי חשבון</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div id="extraModalWindow" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header" style="background:var(--accent);"><h3>הוספת תוספת חריגה</h3><button class="close-modal" onclick="window.closeModal('extraModalWindow')">&times;</button></div>
+    <div class="modal-body">
+      <form onsubmit="window.saveExtra(event)">
+        <input type="hidden" id="exId">
+        <div class="form-group"><label>תיאור התוספת</label><input type="text" id="exDesc" class="form-control" required></div>
+        <div class="form-grid"><div class="form-group"><label>סכום (₪)</label><input type="number" id="exAmount" class="form-control" required min="0"></div><div class="form-group"><label>תאריך</label><input type="date" id="exDate" class="form-control" required></div></div>
+        <div class="form-grid"><div class="form-group"><label>שם המאשר</label><input type="text" id="exApprover" class="form-control"></div><div class="form-group"><label>חשבונית / אסמכתא</label><input type="text" id="exInvoice" class="form-control"></div></div>
+        <div style="display:flex; gap:10px; margin-top:16px;"><button type="button" onclick="window.deleteExtra()" id="btnDeleteExtra" class="btn btn-outline" style="color:var(--danger); border-color:var(--danger); display:none;">מחק</button><button type="submit" class="btn btn-gold" style="flex:1;">שמור תוספת</button></div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div id="receiptModalWindow" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header" style="background:var(--success);"><h3>תיעוד תקבול / חשבונית מס</h3><button class="close-modal" onclick="window.closeModal('receiptModalWindow')">&times;</button></div>
+    <div class="modal-body">
+      <form onsubmit="window.saveReceipt(event)">
+        <input type="hidden" id="rcId">
+        <div class="form-grid"><div class="form-group"><label>תאריך תשלום</label><input type="date" id="rcDate" class="form-control" required></div><div class="form-group"><label>סכום (₪)</label><input type="number" id="rcAmount" class="form-control" required min="0"></div></div>
+        <div class="form-group"><label>מספר חשבונית / אסמכתא</label><input type="text" id="rcInvoice" class="form-control" required></div>
+        <div class="form-group"><label>הערות</label><input type="text" id="rcNotes" class="form-control"></div>
+        <div style="display:flex; gap:10px; margin-top:16px;"><button type="button" onclick="window.deleteReceipt()" id="btnDeleteReceipt" class="btn btn-outline" style="color:var(--danger); border-color:var(--danger); display:none;">מחק</button><button type="submit" class="btn btn-success" style="flex:1;">שמור תקבול</button></div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div id="historyModal" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header"><h3>היסטוריית מעקב וטיפול</h3><button class="close-modal" onclick="window.closeModal('historyModal')">&times;</button></div>
+    <div class="modal-body">
+      <h4 id="historyTransTitle" style="margin-top:0; color:var(--text-mid); margin-bottom:16px;"></h4>
+      <div id="historyList" class="chat-container"></div>
+      <div style="display:flex; gap:10px;"><input type="text" id="newHistoryNote" class="form-control" placeholder="הקלד עדכון חדש..." style="margin:0;"><button class="btn btn-primary" onclick="window.addHistoryEntry()">שמירה</button></div>
+    </div>
+  </div>
+</div>
+
+<div id="aiModal" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header" style="background:var(--ai-color);"><h3>✨ העוזר החכם</h3><button class="close-modal" onclick="window.closeModal('aiModal')">&times;</button></div>
+    <div class="modal-body">
+      <div id="aiLoader" style="text-align:center; padding:30px; display:none; font-weight:bold;"><span style="font-size:2rem; display:block; margin-bottom:10px;">🤔</span>מנתח נתונים ומנסח...</div>
+      <div id="aiContent" style="display:none;"><div class="ai-result-box" id="aiResultText"></div><button class="btn btn-outline" style="margin-top:16px; width:100%; border-color:var(--ai-color); color:var(--ai-color);" onclick="window.copyAiText()">📋 העתק טקסט</button></div>
+    </div>
+  </div>
+</div>
+
+<div id="alertPopup" class="modal-overlay">
+  <div class="modal-content" style="max-width:450px; text-align:center;">
+    <div class="modal-body">
+      <div style="font-size:3.5rem; margin-bottom:10px;">🔔</div><h3 style="margin-top:0; color:var(--primary);">תזכורות גבייה להיום</h3>
+      <div id="alertList" style="text-align:right; background:var(--gauge-bg); padding:16px; border-radius:12px; margin:20px 0; border:1px solid var(--accent); line-height:1.6;"></div>
+      <button class="btn btn-primary" onclick="window.closeModal('alertPopup')" style="width:100%; padding:12px;">הבנתי, תודה</button>
+    </div>
+  </div>
+</div>
+
+<div id="toastContainer" class="toast-container"></div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+  import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+  import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+  window.projects = []; window.curProjId = null; window.curTransId = null; window.curExtraId = null; window.curReceiptId = null; window.curHistoryTransId = null;
+  let db = null; let mainDocRef = null;
+
+  async function initCloud() {
+    try {
+      const firebaseConfig = {
+        apiKey: "AIzaSyDY9wtOA-SIW2tXrLq9tou35M7bxNPURxI",
+        authDomain: "rafi-flow-f23aa.firebaseapp.com",
+        projectId: "rafi-flow-f23aa",
+        storageBucket: "rafi-flow-f23aa.firebasestorage.app",
+        messagingSenderId: "343232398915",
+        appId: "1:343232398915:web:8ee854e4a26ab986abf6f6"
+      };
+      
+      const app = initializeApp(firebaseConfig);
+      db = getFirestore(app);
+      mainDocRef = doc(db, 'appState', 'mainDb');
+      
+      try { const auth = getAuth(app); await signInAnonymously(auth); } catch(e) { console.log("Auth skipped"); }
+      setupFirestoreListener();
+    } catch(e) { console.warn("Cloud connection error:", e); setCloudUI(false); window.loadLocalFallback(); }
+  }
+
+  function setupFirestoreListener() {
+    onSnapshot(mainDocRef, (docSnap) => {
+      if (docSnap.exists()) { window.projects = docSnap.data().projectsArray || []; } else { window.projects = []; }
+      window.renderGrid(); window.checkAlerts(); if (window.curProjId) window.openProject(window.curProjId);
+      setCloudUI(true);
+    }, (error) => { console.error("Cloud error:", error); setCloudUI(false); });
+  }
+
+  function setCloudUI(isConnected) {
+    const badge = document.getElementById('cloudStatusBadge'); const dot = document.getElementById('cloudDot'); const txt = document.getElementById('cloudStatusText');
+    if (isConnected) { badge.className = 'cloud-status connected'; txt.textContent = 'מחובר לענן'; dot.className = 'cloud-dot'; } 
+    else { badge.className = 'cloud-status error'; txt.textContent = 'מצב מקומי'; dot.className = 'cloud-dot'; }
+  }
+
+  window.saveData = async function() {
+    if (db && mainDocRef) {
+      try { await setDoc(mainDocRef, { projectsArray: window.projects }); window.showToast("✅ נשמר בענן"); } 
+      catch (e) { window.showToast("❌ שגיאת שמירה בענן", false); }
+    } else {
+      localStorage.setItem('rafi_projects_local', JSON.stringify(window.projects));
+      window.renderGrid(); if (window.curProjId) window.openProject(window.curProjId);
+    }
+  };
+
+  window.loadLocalFallback = function() { window.projects = JSON.parse(localStorage.getItem('rafi_projects_local') || '[]'); window.renderGrid(); window.checkAlerts(); };
+
+  window.onload = () => {
+    document.getElementById('currentDate').textContent = new Date().toLocaleDateString('he-IL');
+    if (localStorage.getItem('rafi_theme') === 'dark') document.body.classList.add('dark-mode');
+    const savedLogo = localStorage.getItem('rafi_logo_img');
+    if (savedLogo) { document.getElementById('customLogoImg').src = savedLogo; document.getElementById('customLogoImg').style.display = 'block'; document.getElementById('defaultLogo').style.display = 'none'; }
+    initCloud();
+  };
+
+  window.showToast = function(msg, isSuccess = true) {
+    const container = document.getElementById('toastContainer'); const t = document.createElement('div');
+    t.className = isSuccess ? 'toast' : 'toast error'; t.innerHTML = `<span>${isSuccess ? '✅' : '❌'}</span> ${msg}`;
+    container.appendChild(t); setTimeout(() => { if (container.contains(t)) container.removeChild(t); }, 4000);
+  };
+  window.closeModal = function(id) { document.getElementById(id).style.display = 'none'; };
+  window.fmtDate = function(d) { return d ? d.split('-').reverse().join('/') : '-'; };
+  window.openWhatsApp = function(phone, e) { if (e) e.stopPropagation(); if (!phone) return; let clean = phone.replace(/\D/g, '').replace(/^0/, '972'); window.open(`https://wa.me/${clean}`, '_blank'); };
+  window.toggleTheme = function() { document.body.classList.toggle('dark-mode'); localStorage.setItem('rafi_theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light'); };
+  window.uploadLogo = function(input) { const file = input.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = e => { localStorage.setItem('rafi_logo_img', e.target.result); document.getElementById('customLogoImg').src = e.target.result; document.getElementById('customLogoImg').style.display = 'block'; document.getElementById('defaultLogo').style.display = 'none'; }; reader.readAsDataURL(file); };
+
+  window.renderGrid = function() {
+    const grid = document.getElementById('projectGrid'); grid.innerHTML = '';
+    const search = document.getElementById('mainSearch').value.toLowerCase();
+    const filtered = window.projects.filter(p => p.name.toLowerCase().includes(search) || (p.accountNum && p.accountNum.includes(search)));
+    document.getElementById('emptyState').style.display = filtered.length === 0 ? 'block' : 'none';
+    const waIcon = `<i style="font-style:normal;">💬</i>`;
+
+    filtered.forEach(p => {
+      const totalReceipts = (p.receipts||[]).reduce((s,r) => s + Number(r.amount), 0);
+      const totalExtras = (p.extras||[]).reduce((s,e) => s + Number(e.amount), 0);
+      const totalBudget = Number(p.budget); const grandTotal = totalBudget + totalExtras;
+      const pct = grandTotal > 0 ? Math.min(Math.round((totalReceipts / grandTotal) * 100), 100) : 0;
+      const circumference = 2 * Math.PI * 34; const dashOffset = circumference - (pct / 100) * circumference;
+      const strokeColor = pct >= 100 ? 'var(--success)' : (pct > 0 ? 'var(--warning)' : 'var(--danger)');
+
+      const card = document.createElement('div'); card.className = 'project-card';
+      card.onclick = (e) => { if (!e.target.closest('button') && !e.target.closest('a')) window.openProject(p.id); };
+      
+      card.innerHTML = `
+        <div class="card-header"><div><div class="card-id">#${p.accountNum || '-'}</div><div class="card-name">${p.name}</div><div class="card-client">${p.client}</div></div></div>
+        <div class="card-body"><div class="progress-row"><div class="donut-wrap"><svg viewBox="0 0 80 80"><circle class="donut-track" cx="40" cy="40" r="34"></circle><circle class="donut-fill" cx="40" cy="40" r="34" style="stroke-dasharray: ${circumference}; stroke-dashoffset: ${dashOffset}; stroke: ${strokeColor};"></circle></svg><div class="donut-pct">${pct}%</div></div><div class="card-stats"><div class="stat-row"><span class="stat-label">תקציב כולל:</span><span class="stat-val">₪${grandTotal.toLocaleString()}</span></div><div class="stat-row"><span class="stat-label">גבייה בפועל:</span><span class="stat-val green">₪${totalReceipts.toLocaleString()}</span></div><div class="stat-row" style="border-top:1px dashed var(--border); padding-top:4px; margin-top:2px;"><span class="stat-label">יתרה:</span><span class="stat-val">₪${(grandTotal - totalReceipts).toLocaleString()}</span></div></div></div></div>
+        <div class="card-footer"><div class="contact-info">איש קשר<span>${p.contact}</span></div>${p.phone ? `<button class="icon-btn wa-bg" onclick="window.openWhatsApp('${p.phone}', event)">${waIcon}</button>` : ''}</div>`;
+      grid.appendChild(card);
+    });
+  };
+
+  window.openProject = function(id) {
+    window.curProjId = id; const p = window.projects.find(x => String(x.id) === String(id)); if (!p) return;
+    document.getElementById('dtName').textContent = p.name; document.getElementById('dtAccountNum').textContent = p.accountNum || '-';
+    const totalReceipts = (p.receipts||[]).reduce((s,r) => s + Number(r.amount), 0); const totalApproved = (p.transactions||[]).filter(t=>t.status==='approved').reduce((s,t) => s + Number(t.approved), 0); const totalExtras = (p.extras||[]).reduce((s,e) => s + Number(e.amount), 0); const grandTotal = Number(p.budget) + totalExtras;
+    document.getElementById('dtTotalBudget').textContent = '₪' + grandTotal.toLocaleString(); document.getElementById('dtTotalApproved').textContent = '₪' + totalApproved.toLocaleString(); document.getElementById('dtReceiptsTotal').textContent = '₪' + totalReceipts.toLocaleString(); document.getElementById('dtRemaining').textContent = '₪' + (grandTotal - totalReceipts).toLocaleString();
+    const waIcon = `<i style="font-style:normal; font-size:14px;">💬</i>`; const mailIcon = `<i style="font-style:normal; font-size:14px;">📧</i>`;
+    document.getElementById('contactsArea').innerHTML = `<div class="detail-contact-box"><div><span class="contact-label">לקוח</span><b>${p.contact || '-'}</b></div><div style="display:flex;gap:5px;">${p.email ? `<a href="mailto:${p.email}" class="icon-btn mail-bg">${mailIcon}</a>` : ''}${p.phone ? `<button class="icon-btn wa-bg" onclick="window.openWhatsApp('${p.phone}',event)">${waIcon}</button>` : ''}</div></div><div class="detail-contact-box" style="background:var(--manager-bg);"><div><span class="contact-label" style="color:var(--manager-text);">מנהל פרויקט</span><b style="color:var(--manager-text);">${p.manager||'-'}</b></div>${p.managerPhone ? `<button class="icon-btn wa-bg" onclick="window.openWhatsApp('${p.managerPhone}',event)">${waIcon}</button>` : ''}</div><div class="detail-contact-box" style="background:var(--site-bg);"><div><span class="contact-label" style="color:var(--site-text);">מנהל עבודה</span><b style="color:var(--site-text);">${p.siteManager||'-'}</b></div>${p.siteManagerPhone ? `<button class="icon-btn wa-bg" onclick="window.openWhatsApp('${p.siteManagerPhone}',event)">${waIcon}</button>` : ''}</div>`;
+    window.renderTables(p); document.getElementById('projectModal').style.display = 'flex';
+  };
+
+  window.renderTables = function(p) {
+    const exBody = document.querySelector('#extrasTable tbody'); exBody.innerHTML = '';
+    (p.extras||[]).sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(x => { exBody.innerHTML += `<tr><td>${window.fmtDate(x.date)}</td><td>${x.desc}</td><td>${x.approver}</td><td>${x.invoice}</td><td style="font-weight:bold;">₪${Number(x.amount).toLocaleString()}</td><td><button class="btn btn-outline" style="padding:4px 8px;" onclick="window.editExtra('${x.id}')">✎</button></td></tr>`; });
+    const trBody = document.querySelector('#transTable tbody'); trBody.innerHTML = '';
+    if (!p.serialCounter) p.serialCounter = 0;
+    (p.transactions||[]).sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(t => {
+      if (!t.serial) t.serial = ++p.serialCounter;
+      const color = t.status === 'approved' ? 'var(--success)' : 'var(--warning)'; const stTxt = t.status === 'approved' ? 'אושר' : 'נשלח לאישור'; const methodIcon = { email: '📧', whatsapp: '💬', phone: '📞' }[t.method] || '';
+      trBody.innerHTML += `<tr><td>#${t.serial}</td><td>${window.fmtDate(t.date)}</td><td><b>${t.desc}</b></td><td>${t.contactPerson||'-'}</td><td style="font-size:1.1rem;">${methodIcon}</td><td>₪${Number(t.demand).toLocaleString()}</td><td style="font-weight:bold;">₪${Number(t.approved).toLocaleString()}</td><td style="color:${color}; font-weight:bold;">${stTxt}</td><td style="display:flex;gap:5px;"><button class="btn btn-ai" style="padding:4px 8px;" title="ניסוח הודעה ב-AI" onclick="window.draftCollectionMessage('${t.id}')">✨</button><button class="btn btn-outline" style="padding:4px 8px;" onclick="window.editTrans('${t.id}')">✎</button><button class="btn btn-outline" style="padding:4px 8px;" onclick="window.openHistory('${t.id}')">🕒</button></td></tr>`;
+    });
+    const rcBody = document.querySelector('#receiptsTable tbody'); rcBody.innerHTML = '';
+    (p.receipts||[]).sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(r => { rcBody.innerHTML += `<tr><td>${window.fmtDate(r.date)}</td><td><b>${r.invoice}</b></td><td>${r.notes}</td><td style="color:var(--success);font-weight:bold">₪${Number(r.amount).toLocaleString()}</td><td><button class="btn btn-outline" style="padding:4px 8px;" onclick="window.editReceipt('${r.id}')">✎</button></td></tr>`; });
+  };
+
+  window.openNewProjectModal = function() { document.getElementById('epId').value = ''; ['epName','epAccountNum','epClient','epContact','epPhone','epEmail','epManager','epManagerPhone','epSiteManager','epSiteManagerPhone','epBudget'].forEach(id => document.getElementById(id).value = ''); document.getElementById('btnDeleteProject').style.display = 'none'; document.getElementById('editModal').style.display = 'flex'; };
+  window.editProjectDetails = function() { const p = window.projects.find(x => String(x.id) === String(window.curProjId)); if(!p) return; document.getElementById('epId').value = p.id; document.getElementById('epName').value = p.name; document.getElementById('epBudget').value = p.budget; document.getElementById('epAccountNum').value = p.accountNum||''; document.getElementById('epClient').value = p.client||''; document.getElementById('epContact').value = p.contact||''; document.getElementById('epPhone').value = p.phone||''; document.getElementById('epEmail').value = p.email||''; document.getElementById('epManager').value = p.manager||''; document.getElementById('epManagerPhone').value = p.managerPhone||''; document.getElementById('epSiteManager').value = p.siteManager||''; document.getElementById('epSiteManagerPhone').value = p.siteManagerPhone||''; document.getElementById('btnDeleteProject').style.display = 'block'; document.getElementById('editModal').style.display = 'flex'; };
+  window.saveProject = function(e) { e.preventDefault(); const id = document.getElementById('epId').value.trim(); const existing = id ? window.projects.find(x => String(x.id) === String(id)) : null; const data = { id: id ? Number(id) : Date.now(), name: document.getElementById('epName').value, accountNum: document.getElementById('epAccountNum').value, client: document.getElementById('epClient').value, budget: document.getElementById('epBudget').value, contact: document.getElementById('epContact').value, phone: document.getElementById('epPhone').value, email: document.getElementById('epEmail').value, manager: document.getElementById('epManager').value, managerPhone: document.getElementById('epManagerPhone').value, siteManager: document.getElementById('epSiteManager').value, siteManagerPhone: document.getElementById('epSiteManagerPhone').value, transactions: existing ? (existing.transactions || []) : [], extras: existing ? (existing.extras || []) : [], receipts: existing ? (existing.receipts || []) : [], serialCounter: existing ? (existing.serialCounter || 0) : 0 }; if (existing) { const idx = window.projects.findIndex(p => String(p.id) === String(id)); window.projects[idx] = data; } else { window.projects.push(data); } window.saveData(); window.closeModal('editModal'); };
+  window.deleteProject = function() { if (!confirm("למחוק את הפרויקט לצמיתות?")) return; window.projects = window.projects.filter(p => String(p.id) !== String(window.curProjId)); window.curProjId = null; window.saveData(); window.closeModal('editModal'); window.closeModal('projectModal'); };
+
+  window.openTransModal = function() { window.curTransId = null; document.getElementById('trId').value = ''; document.getElementById('trDesc').value = ''; document.getElementById('trDate').value = new Date().toISOString().split('T')[0]; document.getElementById('trDemand').value = ''; document.getElementById('trApproved').value = ''; document.getElementById('trAppDate').value = ''; document.getElementById('trReminder').value = ''; document.getElementById('trStatus').value = 'sent'; document.getElementById('trNotes').value = ''; document.getElementById('trContactPerson').value = ''; document.getElementById('trMethod').value = 'email'; document.getElementById('trTerms').value = ''; document.getElementById('transModalWindow').style.display = 'flex'; };
+  window.editTrans = function(id) { window.curTransId = id; const p = window.projects.find(x => String(x.id) === String(window.curProjId)); const t = p.transactions.find(x => x.id == id); document.getElementById('trId').value = id; document.getElementById('trDesc').value = t.desc; document.getElementById('trDate').value = t.date; document.getElementById('trDemand').value = t.demand; document.getElementById('trTerms').value = t.terms||''; document.getElementById('trApproved').value = t.approved; document.getElementById('trAppDate').value = t.appDate; document.getElementById('trReminder').value = t.reminder; document.getElementById('trStatus').value = t.status; document.getElementById('trNotes').value = t.notes; document.getElementById('trContactPerson').value = t.contactPerson||''; document.getElementById('trMethod').value = t.method||'email'; document.getElementById('transModalWindow').style.display = 'flex'; };
+  window.saveTransaction = function(e) { e.preventDefault(); const pIdx = window.projects.findIndex(x => String(x.id) === String(window.curProjId)); const p = window.projects[pIdx]; if (p.serialCounter == null) p.serialCounter = 0; let serial = window.curTransId ? (p.transactions.find(x => x.id == window.curTransId) || {}).serial || 0 : ++p.serialCounter; const newItem = { id: window.curTransId || Date.now(), serial, desc: document.getElementById('trDesc').value, date: document.getElementById('trDate').value, demand: document.getElementById('trDemand').value, terms: document.getElementById('trTerms').value, approved: document.getElementById('trApproved').value, appDate: document.getElementById('trAppDate').value, reminder: document.getElementById('trReminder').value, status: document.getElementById('trStatus').value, notes: document.getElementById('trNotes').value, contactPerson: document.getElementById('trContactPerson').value, method: document.getElementById('trMethod').value, history: window.curTransId ? (p.transactions.find(x=>x.id==window.curTransId)||{}).history||[] : [] }; let oldStatus = 'sent'; if (window.curTransId) { const idx = p.transactions.findIndex(x => x.id == window.curTransId); oldStatus = p.transactions[idx].status; p.transactions[idx] = newItem; } else { p.transactions.push(newItem); } window.saveData(); window.closeModal('transModalWindow'); if (newItem.status === 'approved' && oldStatus !== 'approved') { if (confirm("הסטטוס שונה ל'אושר'. האם לתעד תקבול כעת?")) setTimeout(() => window.openReceiptModal(newItem.approved), 300); } };
+
+  window.openExtraModal = function() { window.curExtraId = null; document.getElementById('exId').value = ''; document.getElementById('exDesc').value = ''; document.getElementById('exAmount').value = ''; document.getElementById('exDate').value = new Date().toISOString().split('T')[0]; document.getElementById('exApprover').value = ''; document.getElementById('exInvoice').value = ''; document.getElementById('btnDeleteExtra').style.display = 'none'; document.getElementById('extraModalWindow').style.display = 'flex'; };
+  window.editExtra = function(id) { window.curExtraId = id; const item = window.projects.find(x => String(x.id) === String(window.curProjId)).extras.find(x => x.id == id); document.getElementById('exId').value = id; document.getElementById('exDesc').value = item.desc; document.getElementById('exAmount').value = item.amount; document.getElementById('exDate').value = item.date; document.getElementById('exApprover').value = item.approver; document.getElementById('exInvoice').value = item.invoice; document.getElementById('btnDeleteExtra').style.display = 'block'; document.getElementById('extraModalWindow').style.display = 'flex'; };
+  window.saveExtra = function(e) { e.preventDefault(); const pIdx = window.projects.findIndex(x => String(x.id) === String(window.curProjId)); const newItem = { id: window.curExtraId||Date.now(), desc: document.getElementById('exDesc').value, amount: document.getElementById('exAmount').value, date: document.getElementById('exDate').value, approver: document.getElementById('exApprover').value, invoice: document.getElementById('exInvoice').value }; if (window.curExtraId) { const idx = window.projects[pIdx].extras.findIndex(x => x.id==window.curExtraId); window.projects[pIdx].extras[idx] = newItem; } else window.projects[pIdx].extras.push(newItem); window.saveData(); window.closeModal('extraModalWindow'); };
+  window.deleteExtra = function() { if (!confirm("למחוק חריגה?")) return; const pIdx = window.projects.findIndex(x => String(x.id) === String(window.curProjId)); window.projects[pIdx].extras = window.projects[pIdx].extras.filter(x => x.id != window.curExtraId); window.saveData(); window.closeModal('extraModalWindow'); };
+
+  window.openReceiptModal = function(prefill) { window.curReceiptId = null; document.getElementById('rcId').value = ''; document.getElementById('rcDate').value = new Date().toISOString().split('T')[0]; document.getElementById('rcAmount').value = prefill||''; document.getElementById('rcInvoice').value = ''; document.getElementById('rcNotes').value = ''; document.getElementById('btnDeleteReceipt').style.display = 'none'; document.getElementById('receiptModalWindow').style.display = 'flex'; };
+  window.editReceipt = function(id) { window.curReceiptId = id; const item = window.projects.find(x => String(x.id) === String(window.curProjId)).receipts.find(x => x.id == id); document.getElementById('rcId').value = id; document.getElementById('rcDate').value = item.date; document.getElementById('rcAmount').value = item.amount; document.getElementById('rcInvoice').value = item.invoice; document.getElementById('rcNotes').value = item.notes; document.getElementById('btnDeleteReceipt').style.display = 'block'; document.getElementById('receiptModalWindow').style.display = 'flex'; };
+  window.saveReceipt = function(e) { e.preventDefault(); const pIdx = window.projects.findIndex(x => String(x.id) === String(window.curProjId)); const newItem = { id: window.curReceiptId||Date.now(), date: document.getElementById('rcDate').value, amount: document.getElementById('rcAmount').value, invoice: document.getElementById('rcInvoice').value, notes: document.getElementById('rcNotes').value }; if (window.curReceiptId) { const idx = window.projects[pIdx].receipts.findIndex(x => x.id==window.curReceiptId); window.projects[pIdx].receipts[idx] = newItem; } else window.projects[pIdx].receipts.push(newItem); window.saveData(); window.closeModal('receiptModalWindow'); };
+  window.deleteReceipt = function() { if (!confirm("למחוק תקבול?")) return; const pIdx = window.projects.findIndex(x => String(x.id) === String(window.curProjId)); window.projects[pIdx].receipts = window.projects[pIdx].receipts.filter(x => x.id != window.curReceiptId); window.saveData(); window.closeModal('receiptModalWindow'); };
+
+  window.openHistory = function(tid) { window.curHistoryTransId = tid; const p = window.projects.find(x => String(x.id) === String(window.curProjId)); const t = p.transactions.find(x => x.id == tid); document.getElementById('historyTransTitle').textContent = `תיעוד עבור: ${t.desc}`; window.renderHistoryList(t.history||[]); document.getElementById('historyModal').style.display = 'flex'; };
+  window.renderHistoryList = function(history) { const list = document.getElementById('historyList'); list.innerHTML = ''; if (!history || history.length === 0) { list.innerHTML = '<div style="text-align:center;color:var(--text-light);font-size:0.9rem;">אין תיעוד קודם</div>'; return; } history.forEach(h => { list.innerHTML += `<div class="chat-msg"><div class="chat-meta">${window.fmtDate(h.date)}</div><div>${h.text}</div></div>`; }); list.scrollTop = list.scrollHeight; };
+  window.addHistoryEntry = function() { const text = document.getElementById('newHistoryNote').value; if (!text) return; const pIdx = window.projects.findIndex(x => String(x.id) === String(window.curProjId)); const tIdx = window.projects[pIdx].transactions.findIndex(x => x.id == window.curHistoryTransId); if (!window.projects[pIdx].transactions[tIdx].history) window.projects[pIdx].transactions[tIdx].history = []; window.projects[pIdx].transactions[tIdx].history.push({ date: new Date().toISOString().split('T')[0], text }); document.getElementById('newHistoryNote').value = ''; window.saveData(); window.renderHistoryList(window.projects[pIdx].transactions[tIdx].history); };
+
+  window.checkAlerts = function() { const today = new Date().toISOString().split('T')[0]; const alerts = []; window.projects.forEach(p => { (p.transactions||[]).forEach(t => { if (t.reminder === today && t.status !== 'approved') { alerts.push(`<b>${p.name}</b>: ${t.desc} (₪${Number(t.demand).toLocaleString()})`); } }); }); if (alerts.length > 0) { document.getElementById('alertList').innerHTML = alerts.join('<hr style="border-top:1px solid var(--border);margin:10px 0;">'); document.getElementById('alertPopup').style.display = 'flex'; } };
+
+  async function callGemini(prompt) { const apiKey = ""; try { const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) }); const data = await response.json(); return data.candidates[0].content.parts[0].text; } catch (e) { return "שגיאה בתקשורת עם ה-AI. נסה שנית."; } }
+  window.draftCollectionMessage = async function(transId) { const p = window.projects.find(x => String(x.id) === String(window.curProjId)); const t = p.transactions.find(x => x.id == transId); document.getElementById('aiModal').style.display = 'flex'; document.getElementById('aiLoader').style.display = 'block'; document.getElementById('aiContent').style.display = 'none'; const prompt = `פעל כמנהל גבייה מקצועי ואדיב בחברת 'קבוצת רפי שפירא'. נסח הודעת גבייה קצרה ומנומסת אך ברורה ללקוח. פרטי הלקוח: ${p.contact} פרטי החוב: תיאור: ${t.desc}, סכום: ${Number(t.demand).toLocaleString()} ש"ח, תאריך: ${window.fmtDate(t.date)} אנא נסח שתי אפשרויות: 1. הודעת וואטסאפ קצרה. 2. ניסוח רשמי למייל. תמיד ענה בעברית.`; const result = await callGemini(prompt); document.getElementById('aiLoader').style.display = 'none'; document.getElementById('aiContent').style.display = 'block'; document.getElementById('aiResultText').textContent = result; };
+  window.copyAiText = function() { navigator.clipboard.writeText(document.getElementById('aiResultText').textContent).then(() => window.showToast("📋 הועתק ללוח!")); };
+  window.downloadBackup = function() { const a = document.createElement('a'); a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(window.projects, null, 2)); a.download = "RafiShapira_Backup_" + new Date().toISOString().slice(0,10) + ".json"; document.body.appendChild(a); a.click(); document.body.removeChild(a); window.showToast("💾 גיבוי הורד בהצלחה"); };
+  window.restoreBackup = function(input) { const f = input.files[0]; if (!f) return; const r = new FileReader(); r.onload = e => { if (confirm("שחזור הנתונים ישכתב את המידע הקיים בענן/מקומי. להמשיך?")) { try { window.projects = JSON.parse(e.target.result); window.saveData(); window.showToast("✅ הנתונים שוחזרו בהצלחה"); } catch (err) { window.showToast("❌ שגיאה בקובץ הגיבוי", false); } } }; r.readAsText(f); input.value = ''; };
+  window.exportToExcelPro = function() {
+    if (window.projects.length === 0) return window.showToast("⚠️ אין נתונים לייצוא", false);
+    const wb = XLSX.utils.book_new(); wb.Workbook = { Views: [{ RTL: true }] };
+    window.projects.forEach(p => {
+      const totalReceipts = (p.receipts||[]).reduce((s,x) => s + Number(x.amount||0), 0); const totalExtras = (p.extras||[]).reduce((s,x) => s + Number(x.amount||0), 0); const totalValue = Number(p.budget) + totalExtras; const remaining = totalValue - totalReceipts;
+      const sH = { fill:{fgColor:{rgb:"1E3A5F"}}, font:{color:{rgb:"FFFFFF"},bold:true}, alignment:{horizontal:"center"} }; const sHEx = { fill:{fgColor:{rgb:"E8A838"}}, font:{color:{rgb:"FFFFFF"},bold:true}, alignment:{horizontal:"center"} }; const sHRc = { fill:{fgColor:{rgb:"27AE60"}}, font:{color:{rgb:"FFFFFF"},bold:true}, alignment:{horizontal:"center"} }; const sB = { font:{bold:true} };
+      let data = [ [{v:"קבוצת רפי שפירא",s:{font:{bold:true,sz:16,color:{rgb:"1E3A5F"}}}}], [{v:"דוח גבייה וחריגות",s:{font:{sz:12}}}], [], [{v:"פרויקט:",s:sB},{v:p.name}], [{v:"מספר חשבון:",s:sB},{v:p.accountNum||'-'}], [{v:"לקוח:",s:sB},{v:p.client}], [{v:"איש קשר:",s:sB},{v:p.contact+" - "+(p.phone||'')+(p.email?" ("+p.email+")":"")}], [{v:"מנהל פרויקט:",s:sB},{v:(p.manager||'-')+" - "+(p.managerPhone||'-')}], [], [{v:"תקציב מקורי:",s:sB},{v:Number(p.budget),t:'n',z:'"₪"#,##0'}], [{v:'סה"כ חריגות:',s:sB},{v:totalExtras,t:'n',z:'"₪"#,##0'}], [{v:'סה"כ לתשלום:',s:sB},{v:totalValue,t:'n',z:'"₪"#,##0',s:sB}], [], [{v:"טבלת תוספות וחריגות",s:{font:{bold:true,color:{rgb:"E8A838"}}}}], [{v:"תאריך",s:sHEx},{v:"תיאור",s:sHEx},{v:"מאשר",s:sHEx},{v:"אסמכתא",s:sHEx},{v:"סכום",s:sHEx}] ];
+      (p.extras||[]).forEach(x => data.push([{v:window.fmtDate(x.date)},{v:x.desc},{v:x.approver},{v:x.invoice},{v:Number(x.amount),t:'n',z:'#,##0'}])); data.push([]); data.push([{v:"טבלת תקבולים וחשבוניות מס",s:{font:{bold:true,color:{rgb:"27AE60"}}}}]); data.push([{v:"תאריך חשבונית",s:sHRc},{v:"מס' חשבונית",s:sHRc},{v:"הערות",s:sHRc},{v:"סכום",s:sHRc}]);
+      (p.receipts||[]).forEach(r => data.push([{v:window.fmtDate(r.date)},{v:r.invoice},{v:r.notes},{v:Number(r.amount),t:'n',z:'#,##0'}])); data.push([{v:'סה"כ תקבולים:',s:sB},{},{},{v:totalReceipts,t:'n',z:'"₪"#,##0',s:{font:{bold:true,color:{rgb:"27AE60"}}}}]); data.push([]); data.push([{v:"טבלת חשבונות וגבייה",s:{font:{bold:true,color:{rgb:"1E3A5F"}}}}]); data.push([{v:"מס'",s:sH},{v:"תאריך",s:sH},{v:"תיאור",s:sH},{v:"גורם מטפל",s:sH},{v:"אופן פניה",s:sH},{v:"הוגש",s:sH},{v:"אושר",s:sH},{v:"סטטוס",s:sH},{v:"ת. אישור",s:sH},{v:"הערות",s:sH}]);
+      (p.transactions||[]).forEach(t => { const clr = t.status==='approved'?"55EFC4":"FAB1A0"; data.push([{v:t.serial||'-'},{v:window.fmtDate(t.date)},{v:t.desc},{v:t.contactPerson||'-'},{v:t.method||'-'},{v:Number(t.demand),t:'n',z:'#,##0'},{v:Number(t.approved),t:'n',z:'#,##0',s:sB},{v:t.status==='approved'?'אושר':'נשלח לאישור',s:{fill:{fgColor:{rgb:clr}}}},{v:window.fmtDate(t.appDate)},{v:t.notes||''}]); }); data.push([]); data.push([{v:"יתרה לגבייה:",s:sB},{v:remaining,t:'n',z:'"₪"#,##0',s:{font:{bold:true,color:{rgb:"D63031"}}}}]);
+      const ws = XLSX.utils.aoa_to_sheet(data); ws['!views'] = [{rightToLeft:true}]; ws['!cols'] = [{wch:8},{wch:15},{wch:25},{wch:15},{wch:15},{wch:15},{wch:15},{wch:15},{wch:15},{wch:30}]; XLSX.utils.book_append_sheet(wb, ws, (p.name.replace(/[*?\/\\\[\]]/g,'').substring(0,30)) || "Project");
+    });
+    XLSX.writeFile(wb, "RafiShapira_Collection_Report.xlsx"); window.showToast("📊 קובץ אקסל הורד בהצלחה");
+  };
+</script>
+</body>
+</html>
