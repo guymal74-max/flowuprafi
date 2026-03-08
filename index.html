@@ -357,7 +357,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
   import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-  import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { getFirestore, doc, setDoc, onSnapshot, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
   window.projects = []; window.curProjId = null; window.curTransId = null; window.curExtraId = null; window.curReceiptId = null; window.curHistoryTransId = null;
   let db = null; let mainDocRef = null;
@@ -377,7 +377,9 @@
       db = getFirestore(app);
       mainDocRef = doc(db, 'appState', 'mainDb');
       
+      try { await enableIndexedDbPersistence(db); } catch(e) { console.warn(e.code); }
       try { const auth = getAuth(app); await signInAnonymously(auth); } catch(e) { console.log("Auth skipped"); }
+
       setupFirestoreListener();
     } catch(e) { console.warn("Cloud connection error:", e); setCloudUI(false); window.loadLocalFallback(); }
   }
