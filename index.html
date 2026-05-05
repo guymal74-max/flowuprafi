@@ -13,7 +13,7 @@
 
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  
+  <div class="form-group" style="background:var(--finance-bg);border-radius:10px;padding:12px;"><label style="font-weight:700;color:var(--finance-text);display:block;margin-bottom:8px;text-align:center;">מנה"ח / מנהל כספים</label><input type="text" id="epFinanceManager" class="form-control" placeholder="שם" style="margin-bottom:8px;"><input type="text" id="epFinanceManagerPhone" class="form-control" placeholder="טלפון" dir="ltr" style="text-align:right;margin-bottom:8px;"><input type="email" id="epFinanceManagerEmail" class="form-control" placeholder="אימייל" dir="ltr" style="text-align:right;"></div>
   :root {
     --primary:      #1E3A5F;
     --primary-mid:  #2D6A9F;
@@ -263,7 +263,8 @@
         <div class="form-grid">
           <div style="background:var(--manager-bg); padding:12px; border-radius:12px;"><label style="color:var(--manager-text);">מנהל פרויקט</label><input type="text" id="epManager" class="form-control" placeholder="שם" style="margin-bottom:8px;"><input type="text" id="epManagerPhone" class="form-control" placeholder="טלפון" dir="ltr" style="text-align:right;"></div>
           <div style="background:var(--site-bg); padding:12px; border-radius:12px;"><label style="color:var(--site-text);">מנהל עבודה</label><input type="text" id="epSiteManager" class="form-control" placeholder="שם" style="margin-bottom:8px;"><input type="text" id="epSiteManagerPhone" class="form-control" placeholder="טלפון" dir="ltr" style="text-align:right;"></div>
-        </div>
+                   <div style="background:var(--finance-bg);padding:12px;border-radius:10px;"><label style="font-weight:700;color:var(--finance-text);display:block;margin-bottom:8px;text-align:center;">מנה"ח / מנהל כספים</label><input type="text" id="epFinanceManager" class="form-control" placeholder="שם" style="margin-bottom:8px;"><input type="text" id="epFinanceManagerPhone" class="form-control" placeholder="טלפון" dir="ltr" style="text-align:right;margin-bottom:8px;"><input type="email" id="epFinanceManagerEmail" class="form-control" placeholder="אימייל" dir="ltr" style="text-align:right;"></div>
+        
         <div class="form-group" style="margin-top:16px;"><label>תקציב חוזה מקורי (₪)</label><input type="number" id="epBudget" class="form-control" required min="0"></div>
         <div style="display:flex; justify-content:space-between; margin-top:24px; padding-top:16px; border-top:1px solid var(--border);"><button type="button" id="btnDeleteProject" onclick="window.deleteProject()" class="btn btn-outline" style="color:var(--danger); border-color:var(--danger);">מחק פרויקט</button><button type="submit" class="btn btn-primary" style="min-width:120px;">שמירה</button></div>
       </form>
