@@ -361,7 +361,7 @@
   import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getFirestore, doc, setDoc, onSnapshot, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-  window.projects = []; window.curProjId = null; window.curTransId = null; if(document.getElementById('btnDeleteTrans')) document.getElementById('btnDeleteTrans').style.display='none'; window.curExtraId = null; window.curReceiptId = null; window.curHistoryTransId = null;
+  window.projects = []; window.curProjId = null; window.curTransId = null; window.curExtraId = null; window.curReceiptId = null; window.curHistoryTransId = null;
   let db = null; let mainDocRef = null;
 
   async function initCloud() {
@@ -487,65 +487,7 @@ import { getFirestore, doc, setDoc, onSnapshot, enableIndexedDbPersistence } fro
   window.deleteProject = function() { if (!confirm("למחוק את הפרויקט לצמיתות?")) return; window.projects = window.projects.filter(p => String(p.id) !== String(window.curProjId)); window.curProjId = null; window.saveData(); window.closeModal('editModal'); window.closeModal('projectModal'); };
 
   window.openTransModal = function() { window.curTransId = null; document.getElementById('trId').value = ''; document.getElementById('trDesc').value = ''; document.getElementById('trDate').value = new Date().toISOString().split('T')[0]; document.getElementById('trDemand').value = ''; document.getElementById('trApproved').value = ''; document.getElementById('trAppDate').value = ''; document.getElementById('trReminder').value = ''; document.getElementById('trStatus').value = 'sent'; document.getElementById('trNotes').value = ''; document.getElementById('trContactPerson').value = ''; document.getElementById('trMethod').value = 'email'; document.getElementById('trTerms').value = ''; document.getElementById('transModalWindow').style.display = 'flex'; };
-  
-window.deleteTrans = function() {
-  if (!window.curTransId) return;
-  if (!confirm('למחוק את הפעילות?')) return;
-  const proj = window.projects.find(x => String(x.id) === String(window.curProjId));
-  if (!proj) return;
-  proj.transactions = (proj.transactions||[]).filter(x => x.id != window.curTransId);
-  window.saveProjectToFirebase(proj).then(() => {
-    document.getElementById('transModalWindow').style.display='none';
-    window.renderTables(); if(window.checkLoginReminders) window.checkLoginReminders();
-    window.showToast('פעילות נמחקה');
-  });
-};
-
-
-window.saveReminder = function() {
-  const proj = window.projects.find(x => String(x.id) === String(window.curProjId));
-  if (!proj) return;
-  const t = (proj.transactions||[]).find(x => x.id == window.curReminderTransId);
-  if (!t) return;
-  t.reminder = document.getElementById('reminderDateInput').value;
-  window.saveProjectToFirebase(proj).then(() => {
-    document.getElementById('reminderModal').style.display='none';
-    window.renderTables();
-    window.showToast('תזכורת נשמרה');
-  });
-};
-
-
-window.checkLoginReminders = function() {
-  const now = new Date();
-  const allReminders = [];
-  (window.projects||[]).forEach(proj => {
-    (proj.transactions||[]).forEach(t => {
-      if (t.reminder && new Date(t.reminder) <= now) {
-        allReminders.push({ projName: proj.name||proj.siteName||'פרויקט', desc: t.desc, reminder: t.reminder, projId: proj.id, transId: t.id });
-      }
-    });
-  });
-  if (allReminders.length === 0) return;
-  // Build alert popup
-  let html = '<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:99999;display:flex;align-items:center;justify-content:center;"><div style="background:#1e2736;border-radius:12px;padding:28px 32px;max-width:520px;width:93%;direction:rtl;box-shadow:0 8px 40px rgba(0,0,0,0.6);">';
-  html += '<h3 style="color:#f39c12;margin:0 0 14px;">&#9201; תזכורות בעבר (' + allReminders.length + ')</h3>';
-  allReminders.forEach(r => {
-    html += '<div style="border:1px solid #444;border-radius:8px;padding:10px 14px;margin-bottom:10px;background:#252e3e;">';
-    html += '<div style="color:#fff;font-weight:bold;">' + (r.desc||'') + '</div>';
-    html += '<div style="color:#aaa;font-size:0.82rem;">' + r.projName + ' | ' + r.reminder + '</div>';
-    html += '</div>';
-  });
-  html += '<button onclick="this.closest('.reminder-alert-overlay').remove()" style="margin-top:12px;background:#27ae60;color:#fff;border:none;padding:10px 24px;border-radius:8px;cursor:pointer;font-size:0.95rem;">בסדר</button>';
-  html += '</div></div>';
-  const el = document.createElement('div');
-  el.className = 'reminder-alert-overlay';
-  el.innerHTML = html;
-  el.querySelector('button').onclick = () => el.remove();
-  document.body.appendChild(el);
-};
-
-window.editTrans = function(id) { window.curTransId = id; const p = window.projects.find(x => String(x.id) === String(window.curProjId)); const t = p.transactions.find(x => x.id == id); document.getElementById('trId').value = id; document.getElementById('trDesc').value = t.desc; document.getElementById('trDate').value = t.date; document.getElementById('trDemand').value = t.demand; document.getElementById('trTerms').value = t.terms||''; document.getElementById('trApproved').value = t.approved; document.getElementById('trAppDate').value = t.appDate; document.getElementById('trReminder').value = t.reminder||''; document.getElementById('trStatus').value = t.status; document.getElementById('trNotes').value = t.notes; document.getElementById('trContactPerson').value = t.contactPerson||''; document.getElementById('trMethod').value = t.method||'email'; document.getElementById('transModalWindow').style.display = 'flex'; };
+  window.editTrans = function(id) { window.curTransId = id; const p = window.projects.find(x => String(x.id) === String(window.curProjId)); const t = p.transactions.find(x => x.id == id); document.getElementById('trId').value = id; document.getElementById('trDesc').value = t.desc; document.getElementById('trDate').value = t.date; document.getElementById('trDemand').value = t.demand; document.getElementById('trTerms').value = t.terms||''; document.getElementById('trApproved').value = t.approved; document.getElementById('trAppDate').value = t.appDate; document.getElementById('trReminder').value = t.reminder||''; document.getElementById('trStatus').value = t.status; document.getElementById('trNotes').value = t.notes; document.getElementById('trContactPerson').value = t.contactPerson||''; document.getElementById('trMethod').value = t.method||'email'; document.getElementById('transModalWindow').style.display = 'flex'; };
   window.saveTransaction = function(e) { e.preventDefault(); const pIdx = window.projects.findIndex(x => String(x.id) === String(window.curProjId)); const p = window.projects[pIdx]; if (p.serialCounter == null) p.serialCounter = 0; let serial = window.curTransId ? (p.transactions.find(x => x.id == window.curTransId) || {}).serial || 0 : ++p.serialCounter; const newItem = { id: window.curTransId || Date.now(), serial, desc: document.getElementById('trDesc').value, date: document.getElementById('trDate').value, demand: document.getElementById('trDemand').value, terms: document.getElementById('trTerms').value, approved: document.getElementById('trApproved').value, appDate: document.getElementById('trAppDate').value, reminder: document.getElementById('trReminder').value, status: document.getElementById('trStatus').value, notes: document.getElementById('trNotes').value, contactPerson: document.getElementById('trContactPerson').value, method: document.getElementById('trMethod').value, history: window.curTransId ? (p.transactions.find(x=>x.id==window.curTransId)||{}).history||[] : [] }; let oldStatus = 'sent'; if (window.curTransId) { const idx = p.transactions.findIndex(x => x.id == window.curTransId); oldStatus = p.transactions[idx].status; p.transactions[idx] = newItem; } else { p.transactions.push(newItem); } window.saveData(); window.closeModal('transModalWindow'); if (newItem.status === 'approved' && oldStatus !== 'approved') { if (confirm("הסטטוס שונה ל'אושר'. האם לתעד תקבול כעת?")) setTimeout(() => window.openReceiptModal(newItem.approved), 300); } };
 
   window.openExtraModal = function() { window.curExtraId = null; document.getElementById('exId').value = ''; document.getElementById('exDesc').value = ''; document.getElementById('exAmount').value = ''; document.getElementById('exDate').value = new Date().toISOString().split('T')[0]; document.getElementById('exApprover').value = ''; document.getElementById('exInvoice').value = ''; document.getElementById('btnDeleteExtra').style.display = 'none'; document.getElementById('extraModalWindow').style.display = 'flex'; };
@@ -587,20 +529,5 @@ window.editTrans = function(id) { window.curTransId = id; const p = window.proje
   };
 </script>
 <div id="overdueAlertsOverlay"><div id="overdueAlertsBox"><div id="overdueAlertsHeader"><span style="font-size:26px;">&#128276;</span><h3>התראות – תאריך יעד עבר</h3><span id="overdueAlertsBadge">0</span></div><div id="overdueAlertsList"></div><div id="overdueAlertsFooter"><button id="overdueAlertsDismissBtn" onclick="window.dismissOverdueAlerts()">דחה לשעה קרובה</button><button id="overdueAlertsCloseBtn" onclick="window.closeOverdueAlerts()">סגור</button></div></div></div><div id="alertPopup" style="display:none;"><div id="alertList"></div></div>
-
-<!-- REMINDER MODAL -->
-<div id="reminderModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:9999;justify-content:center;align-items:center;">
-  <div style="background:var(--bg-secondary,#1e2736);border-radius:12px;padding:28px 32px;min-width:320px;max-width:440px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.5);direction:rtl;">
-    <h3 style="margin:0 0 18px;color:var(--text-primary,#fff);font-size:1.1rem;">&#9200; קבע תזכורת</h3>
-    <p id="reminderModalTitle" style="color:#aaa;margin:0 0 14px;font-size:0.9rem;"></p>
-    <label style="color:#ccc;font-size:0.85rem;">תאריך תזכורת:</label>
-    <input type="datetime-local" id="reminderDateInput" style="width:100%;padding:8px;margin:6px 0 18px;border-radius:6px;border:1px solid #444;background:#111;color:#fff;font-size:0.9rem;">
-    <div style="display:flex;gap:10px;justify-content:flex-end;">
-      <button onclick="document.getElementById('reminderModal').style.display='none'" style="background:#555;color:#fff;border:none;padding:8px 18px;border-radius:6px;cursor:pointer;">בטל</button>
-      <button onclick="window.saveReminder()" style="background:#27ae60;color:#fff;border:none;padding:8px 18px;border-radius:6px;cursor:pointer;">שמור</button>
-    </div>
-  </div>
-</div>
-
-<div id="reminderModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:9999;justify-content:center;align-items:center;"><div style="background:#1e2736;border-radius:12px;padding:28px 32px;min-width:320px;max-width:440px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.5);direction:rtl;"><h3 style="margin:0 0 18px;color:#fff;font-size:1.1rem;">&#9200; קבע תזכורת</h3><p id="reminderModalTitle" style="color:#aaa;margin:0 0 14px;font-size:0.9rem;"></p><label style="color:#ccc;font-size:0.85rem;">תאריך:</label><input type="datetime-local" id="reminderDateInput" style="width:100%;padding:8px;margin:6px 0 18px;border-radius:6px;border:1px solid #444;background:#111;color:#fff;"><div style="display:flex;gap:10px;justify-content:flex-end;"><button onclick="document.getElementById("reminderModal").style.display="none"" style="background:#555;color:#fff;border:none;padding:8px 18px;border-radius:6px;cursor:pointer;">בטל</button><button onclick="window.saveReminder()" style="background:#27ae60;color:#fff;border:none;padding:8px 18px;border-radius:6px;cursor:pointer;">שמור</button></div></div></div></body>
+</body>
 </html>
