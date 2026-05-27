@@ -529,5 +529,151 @@ import { getFirestore, doc, setDoc, onSnapshot, enableIndexedDbPersistence } fro
   };
 </script>
 <div id="overdueAlertsOverlay"><div id="overdueAlertsBox"><div id="overdueAlertsHeader"><span style="font-size:26px;">&#128276;</span><h3>התראות – תאריך יעד עבר</h3><span id="overdueAlertsBadge">0</span></div><div id="overdueAlertsList"></div><div id="overdueAlertsFooter"><button id="overdueAlertsDismissBtn" onclick="window.dismissOverdueAlerts()">דחה לשעה קרובה</button><button id="overdueAlertsCloseBtn" onclick="window.closeOverdueAlerts()">סגור</button></div></div></div><div id="alertPopup" style="display:none;"><div id="alertList"></div></div>
+
+
+<!-- ===== PATCH: Reminder Modal ===== -->
+<div id="reminderModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.65);z-index:9999;justify-content:center;align-items:center;">
+  <div style="background:#1e2736;border-radius:12px;padding:28px 32px;width:90%;max-width:420px;direction:rtl;box-shadow:0 8px 32px rgba(0,0,0,0.6);">
+    <h3 style="margin:0 0 14px;color:#fff;font-size:1.05rem;">&#9200; קבע תזכורת</h3>
+    <p id="reminderModalDesc" style="color:#aaa;font-size:0.85rem;margin:0 0 12px;"></p>
+    <label style="color:#ccc;font-size:0.83rem;display:block;margin-bottom:5px;">תאריך ושעה:</label>
+    <input type="datetime-local" id="reminderDateInput" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #444;background:#111;color:#fff;font-size:0.9rem;box-sizing:border-box;margin-bottom:18px;">
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button onclick="document.getElementById('reminderModal').style.display='none'" style="background:#555;color:#fff;border:none;padding:8px 18px;border-radius:6px;cursor:pointer;">בטל</button>
+      <button onclick="window._saveReminder()" style="background:#27ae60;color:#fff;border:none;padding:8px 18px;border-radius:6px;cursor:pointer;">שמור</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PATCH: Scripts ===== -->
+<script>
+(function() {
+
+  // ---- 1. Override openReminderForTrans to open dedicated modal ----
+  window.openReminderForTrans = function(transId) {
+    var proj = (window.projects||[]).find(function(p){ return String(p.id)===String(window.curProjId); });
+    if (!proj) return;
+    var t = (proj.transactions||[]).find(function(x){ return String(x.id)===String(transId); });
+    if (!t) return;
+    window._curReminderTransId = transId;
+    document.getElementById('reminderModalDesc').textContent = t.desc || '';
+    document.getElementById('reminderDateInput').value = t.reminder || '';
+    document.getElementById('reminderModal').style.display = 'flex';
+  };
+
+  // ---- 2. Save reminder ----
+  window._saveReminder = function() {
+    var proj = (window.projects||[]).find(function(p){ return String(p.id)===String(window.curProjId); });
+    if (!proj) return;
+    var t = (proj.transactions||[]).find(function(x){ return String(x.id)===String(window._curReminderTransId); });
+    if (!t) return;
+    t.reminder = document.getElementById('reminderDateInput').value;
+    window.saveProjectToFirebase(proj).then(function() {
+      document.getElementById('reminderModal').style.display = 'none';
+      if (window.renderTables) window.renderTables();
+      if (window.showToast) window.showToast('תזכורת נשמרה ✅');
+    });
+  };
+
+  // ---- 3. Fix openExtraModal to be on window ----
+  window.openExtraModal = function() {
+    window.curExtraId = null;
+    var fields = ['extraDesc','extraAmount','extraDate','extraApprover','extraInvoice'];
+    fields.forEach(function(id){
+      var el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    var delBtn = document.getElementById('btnDeleteExtra');
+    if (delBtn) delBtn.style.display = 'none';
+    var modal = document.getElementById('extraModalWindow');
+    if (modal) modal.style.display = 'flex';
+  };
+
+  // ---- 4. Add delete button to transModal if missing ----
+  function ensureDeleteTransBtn() {
+    var saveBtn = document.getElementById('btnSaveTrans');
+    if (!saveBtn) return;
+    if (document.getElementById('btnDeleteTrans')) return;
+    var delBtn = document.createElement('button');
+    delBtn.id = 'btnDeleteTrans';
+    delBtn.textContent = 'מחק פעילות';
+    delBtn.style.cssText = 'background:#c0392b;color:#fff;border:none;padding:8px 18px;border-radius:6px;cursor:pointer;display:none;margin-left:8px;';
+    delBtn.onclick = function() { window._deleteTrans(); };
+    saveBtn.parentNode.insertBefore(delBtn, saveBtn);
+  }
+
+  // ---- 5. Delete transaction function ----
+  window._deleteTrans = function() {
+    if (!window.curTransId) return;
+    if (!confirm('למחוק את הפעילות? הפעולה בלתי הפיכה!')) return;
+    var proj = (window.projects||[]).find(function(p){ return String(p.id)===String(window.curProjId); });
+    if (!proj) return;
+    proj.transactions = (proj.transactions||[]).filter(function(x){ return String(x.id)!==String(window.curTransId); });
+    window.saveProjectToFirebase(proj).then(function() {
+      var modal = document.getElementById('transModalWindow');
+      if (modal) modal.style.display = 'none';
+      if (window.renderTables) window.renderTables();
+      if (window.showToast) window.showToast('פעילות נמחקה');
+    });
+  };
+
+  // ---- 6. Patch editTrans to show/hide delete button ----
+  var _origEditTrans = window.editTrans;
+  window.editTrans = function(id) {
+    if (_origEditTrans) _origEditTrans(id);
+    setTimeout(function() {
+      ensureDeleteTransBtn();
+      var delBtn = document.getElementById('btnDeleteTrans');
+      if (delBtn) delBtn.style.display = id ? 'inline-block' : 'none';
+    }, 50);
+  };
+
+  // ---- 7. Check reminders on login ----
+  window.checkLoginReminders = function() {
+    var now = new Date();
+    var due = [];
+    (window.projects||[]).forEach(function(proj) {
+      (proj.transactions||[]).forEach(function(t) {
+        if (t.reminder && new Date(t.reminder) <= now) {
+          due.push({ projName: proj.name || proj.siteName || '', desc: t.desc || '', time: t.reminder });
+        }
+      });
+    });
+    if (!due.length) return;
+    var overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:99999;display:flex;align-items:center;justify-content:center;';
+    var box = document.createElement('div');
+    box.style.cssText = 'background:#1e2736;border-radius:12px;padding:28px 32px;max-width:500px;width:93%;direction:rtl;box-shadow:0 8px 40px rgba(0,0,0,0.6);max-height:80vh;overflow-y:auto;';
+    var title = document.createElement('h3');
+    title.style.cssText = 'color:#f39c12;margin:0 0 16px;font-size:1.05rem;';
+    title.innerHTML = '&#9201; תזכורות שמועדם עברו (' + due.length + ')';
+    box.appendChild(title);
+    due.forEach(function(r) {
+      var row = document.createElement('div');
+      row.style.cssText = 'border:1px solid #3a4a5a;border-radius:8px;padding:10px 14px;margin-bottom:10px;background:#252e3e;';
+      row.innerHTML = '<div style="color:#fff;font-weight:600;margin-bottom:4px;">' + r.desc + '</div><div style="color:#8899aa;font-size:0.82rem;">' + r.projName + ' &bull; ' + r.time + '</div>';
+      box.appendChild(row);
+    });
+    var closeBtn = document.createElement('button');
+    closeBtn.textContent = 'בסדר';
+    closeBtn.style.cssText = 'margin-top:14px;background:#27ae60;color:#fff;border:none;padding:10px 28px;border-radius:8px;cursor:pointer;font-size:0.95rem;width:100%;';
+    closeBtn.onclick = function() { document.body.removeChild(overlay); };
+    box.appendChild(closeBtn);
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+  };
+
+  // ---- 8. Hook into data load to call checkLoginReminders ----
+  var _origRenderTables = window.renderTables;
+  window.renderTables = function() {
+    if (_origRenderTables) _origRenderTables.apply(this, arguments);
+    if (!window._remindersChecked) {
+      window._remindersChecked = true;
+      setTimeout(window.checkLoginReminders, 500);
+    }
+  };
+
+})();
+</script>
 </body>
 </html>
