@@ -385,10 +385,11 @@
   }
 
   function setupFirestoreListener() {
+       const _t = setTimeout(() => { setCloudUI(false); window.loadLocalFallback(); }, 8000);
     onSnapshot(mainDocRef, (docSnap) => {
       if (docSnap.exists()) { window.projects = docSnap.data().projectsArray || []; } else { window.projects = []; }
       window.renderGrid(); window.checkAlerts(); if (window.curProjId) window.openProject(window.curProjId);
-      setCloudUI(true);
+clearTimeout(_t);       setCloudUI(true);
     }, (error) => { console.error("Cloud error:", error); setCloudUI(false); });
   }
 
