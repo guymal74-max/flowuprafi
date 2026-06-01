@@ -375,7 +375,7 @@
         appId: "1:343232398915:web:8ee854e4a26ab986abf6f6"
       };
       
-      // SDK removed - using REST API only
+      window.onerror = function(m,s,l,c,e){ document.getElementById('cloudStatusText').textContent = 'ERR:'+m.substring(0,60); return false; };
       db = getFirestore(app);
       mainDocRef = doc(db, 'appState', 'mainDb');
       
