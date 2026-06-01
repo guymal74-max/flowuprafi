@@ -379,7 +379,7 @@
       // REST API - no SDK
       // REST API - no SDK
       
-      try { const auth = getAuth(app); await signInAnonymously(auth); } catch(e) { console.log("Auth skipped"); }
+      try { const auth = getAuth(app); // signInAnonymously - REST API no auth needed } catch(e) { console.log("Auth skipped"); }
       // REST API - no SDK
     } catch(e) { console.warn("Cloud error:", e); setCloudUI(false); }
   }
