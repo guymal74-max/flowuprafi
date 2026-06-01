@@ -550,6 +550,18 @@ clearTimeout(_t);       setCloudUI(true);
     });
     XLSX.writeFile(wb, "RafiShapira_Collection_Report.xlsx"); window.showToast("📊 קובץ אקסל הורד בהצלחה");
   };
+// אתחול ישיר - ה-DOM מוכן כי ה-script בסוף ה-body
+(function initApp() {
+  var today = new Date();
+  var dd = String(today.getDate()).padStart(2,'0');
+  var mm = String(today.getMonth()+1).padStart(2,'0');
+  var yyyy = today.getFullYear();
+  var el = document.getElementById('currentDate');
+  if (el) el.textContent = dd+'/'+mm+'/'+yyyy;
+  var saved = localStorage.getItem('rafi_theme');
+  if (saved === 'dark') document.body.classList.add('dark-mode');
+  initCloud();
+})();
 </script>
 </body>
 </html>
