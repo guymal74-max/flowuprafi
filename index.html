@@ -364,7 +364,7 @@
   window.projects = []; window.curProjId = null; window.curTransId = null; window.curExtraId = null; window.curReceiptId = null; window.curHistoryTransId = null;
   const FSBASE = 'https://firestore.googleapis.com/v1/projects/rafi-flow-f23aa/databases/(default)/documents/appState/mainDb'; const FSKEY = 'AIzaSyDY9wtOA-SIW2tXrLq9tou35M7bxNPURxI';
 
-  async function initCloud() { try { const r = await fetch(FSBASE + '?key=' + FSKEY); if (!r.ok) throw new Error('HTTP ' + r.status); const d = await r.json(); const arr = d.fields && d.fields.projectsArray ? d.fields.projectsArray.arrayValue.values || [] : []; window.projects = arr.map(v => JSON.parse(v.stringValue)); window.renderGrid(); window.checkAlerts(); if (window.curProjId) window.openProject(window.curProjId); setCloudUI(true); startPolling(); } catch(e) { console.warn('Cloud error:', e); setCloudUI(false); window.loadLocalFallback(); } }
+  function fsVal(v) { if (!v) return null; if ('stringValue' in v) return v.stringValue; if ('integerValue' in v) return Number(v.integerValue); if ('doubleValue' in v) return Number(v.doubleValue); if ('booleanValue' in v) return v.booleanValue; if ('nullValue' in v) return null; if ('arrayValue' in v) return (v.arrayValue.values||[]).map(fsVal); if ('mapValue' in v) { const o={}; for (const k in v.mapValue.fields) o[k]=fsVal(v.mapValue.fields[k]); return o; } return null; } async function initCloud() { try { const r = await fetch(FSBASE + '?key=' + FSKEY); if (!r.ok) throw new Error('HTTP ' + r.status); const d = await r.json(); const arr = d.fields && d.fields.projectsArray ? d.fields.projectsArray.arrayValue.values || [] : []; window.projects = arr.map(v => v.stringValue ? JSON.parse(v.stringValue) : fsVal(v)); window.renderGrid(); window.checkAlerts(); if (window.curProjId) window.openProject(window.curProjId); setCloudUI(true); startPolling(); } catch(e) { console.warn('Cloud error:', e); setCloudUI(false); window.loadLocalFallback(); } }
     try {
       const firebaseConfig = {
         apiKey: "AIzaSyDY9wtOA-SIW2tXrLq9tou35M7bxNPURxI",
@@ -384,7 +384,7 @@
     } catch(e) { console.warn("Cloud error:", e); setCloudUI(false); window.loadLocalFallback(); }
   }
 
-  function startPolling() { setInterval(async () => { try { const r = await fetch(FSBASE + '?key=' + FSKEY); if (!r.ok) return; const d = await r.json(); const arr = d.fields && d.fields.projectsArray ? d.fields.projectsArray.arrayValue.values || [] : []; window.projects = arr.map(v => JSON.parse(v.stringValue)); window.renderGrid(); window.checkAlerts(); if (window.curProjId) window.openProject(window.curProjId); setCloudUI(true); } catch(e) { setCloudUI(false); } }, 30000); } function setupFirestoreListener() {
+  function startPolling() { setInterval(async () => { try { const r = await fetch(FSBASE + '?key=' + FSKEY); if (!r.ok) return; const d = await r.json(); const arr = d.fields && d.fields.projectsArray ? d.fields.projectsArray.arrayValue.values || [] : []; window.projects = arr.map(v => v.stringValue ? JSON.parse(v.stringValue) : fsVal(v)); window.renderGrid(); window.checkAlerts(); if (window.curProjId) window.openProject(window.curProjId); setCloudUI(true); } catch(e) { setCloudUI(false); } }, 30000); } function setupFirestoreListener() {
        const _t = setTimeout(() => { setCloudUI(false); window.loadLocalFallback(); }, 8000);
     onSnapshot(mainDocRef, (docSnap) => {
       if (docSnap.exists()) { window.projects = docSnap.data().projectsArray || []; } else { window.projects = []; }
