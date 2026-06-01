@@ -436,7 +436,7 @@
   window.renderGrid = function() {
     const grid = document.getElementById('projectGrid'); grid.innerHTML = '';
     const search = document.getElementById('mainSearch').value.toLowerCase();
-    const filtered = window.projects.filter(p => p.name.toLowerCase().includes(search) || (p.accountNum && p.accountNum.includes(search)));
+    const filtered = window.projects.filter(p => (p.name||'').toLowerCase().includes(search) || (p.accountNum && p.accountNum.includes(search)));
     document.getElementById('emptyState').style.display = filtered.length === 0 ? 'block' : 'none';
     const waIcon = `<i style="font-style:normal;">💬</i>`;
 
