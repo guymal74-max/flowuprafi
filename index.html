@@ -364,7 +364,7 @@
   window.projects = []; window.curProjId = null; window.curTransId = null; window.curExtraId = null; window.curReceiptId = null; window.curHistoryTransId = null;
   const FSBASE = 'https://firestore.googleapis.com/v1/projects/rafi-flow-f23aa/databases/(default)/documents/appState/mainDb'; const FSKEY = 'AIzaSyDY9wtOA-SIW2tXrLq9tou35M7bxNPURxI';
 
-  function fsVal(v) { if (!v) return null; if ('stringValue' in v) return v.stringValue; if ('integerValue' in v) return Number(v.integerValue); if ('doubleValue' in v) return Number(v.doubleValue); if ('booleanValue' in v) return v.booleanValue; if ('nullValue' in v) return null; if ('arrayValue' in v) return (v.arrayValue.values||[]).map(fsVal); if ('mapValue' in v) { const o={}; for (const k in v.mapValue.fields) o[k]=fsVal(v.mapValue.fields[k]); return o; } return null; } async function initCloud() { try { const r = await fetch(FSBASE + '?key=' + FSKEY); if (!r.ok) throw new Error('HTTP ' + r.status); const d = await r.json(); const arr = d.fields && d.fields.projectsArray ? d.fields.projectsArray.arrayValue.values || [] : []; window.projects = arr.map(v => v.stringValue ? JSON.parse(v.stringValue) : fsVal(v)); window.renderGrid(); window.checkAlerts(); if (window.curProjId) window.openProject(window.curProjId); setCloudUI(true); startPolling(); } catch(e) { console.warn('Cloud error:', e); setCloudUI(false); } }
+  function fsVal(v) { if (!v) return null; if ('stringValue' in v) return v.stringValue; if ('integerValue' in v) return Number(v.integerValue); if ('doubleValue' in v) return Number(v.doubleValue); if ('booleanValue' in v) return v.booleanValue; if ('nullValue' in v) return null; if ('arrayValue' in v) return (v.arrayValue.values||[]).map(fsVal); if ('mapValue' in v) { const o={}; for (const k in v.mapValue.fields) o[k]=fsVal(v.mapValue.fields[k]); return o; } return null; } async function initCloud() { try { const r = await fetch(FSBASE + '?key=' + FSKEY); if (!r.ok) throw new Error('HTTP ' + r.status); const d = await r.json(); const arr = d.fields && d.fields.projectsArray ? d.fields.projectsArray.arrayValue.values || [] : []; window.projects = arr.map(v => v.stringValue ? JSON.parse(v.stringValue) : fsVal(v)); if(window.renderGrid) window.renderGrid(); if(window.checkAlerts) window.checkAlerts(); if (window.curProjId) window.openProject(window.curProjId); setCloudUI(true); startPolling(); } catch(e) { console.warn('Cloud error:', e); setCloudUI(false); } }
     try {
       const firebaseConfig = {
         apiKey: "AIzaSyDY9wtOA-SIW2tXrLq9tou35M7bxNPURxI",
@@ -384,7 +384,7 @@
     } catch(e) { // Cloud error logged setCloudUI(false); }
   }
 
-  function startPolling() { setInterval(async () => { try { const r = await fetch(FSBASE + '?key=' + FSKEY); if (!r.ok) return; const d = await r.json(); const arr = d.fields && d.fields.projectsArray ? d.fields.projectsArray.arrayValue.values || [] : []; window.projects = arr.map(v => v.stringValue ? JSON.parse(v.stringValue) : fsVal(v)); window.renderGrid(); window.checkAlerts(); if (window.curProjId) window.openProject(window.curProjId); setCloudUI(true); } catch(e) { setCloudUI(false); } }, 30000); } function setupFirestoreListener() { /* REST API - no Firestore listener */
+  function startPolling() { setInterval(async () => { try { const r = await fetch(FSBASE + '?key=' + FSKEY); if (!r.ok) return; const d = await r.json(); const arr = d.fields && d.fields.projectsArray ? d.fields.projectsArray.arrayValue.values || [] : []; window.projects = arr.map(v => v.stringValue ? JSON.parse(v.stringValue) : fsVal(v)); if(window.renderGrid) window.renderGrid(); if(window.checkAlerts) window.checkAlerts(); if (window.curProjId) window.openProject(window.curProjId); setCloudUI(true); } catch(e) { setCloudUI(false); } }, 30000); } function setupFirestoreListener() { /* REST API - no Firestore listener */
        const _t = setTimeout(() => { setCloudUI(false); }, 8000);
     return; }
 
@@ -404,7 +404,7 @@
     }
   };
 
-  window.loadLocalFallback = function() { window.projects = JSON.parse(localStorage.getItem('rafi_projects_local') || '[]'); window.renderGrid(); window.checkAlerts(); };
+  window.loadLocalFallback = function() { window.projects = JSON.parse(localStorage.getItem('rafi_projects_local') || '[]'); if(window.renderGrid) window.renderGrid(); if(window.checkAlerts) window.checkAlerts(); };
 
   document.addEventListener('DOMContentLoaded', () => {
     const today = new Date();
