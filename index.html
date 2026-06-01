@@ -379,15 +379,15 @@
       // REST API - no SDK
       // REST API - no SDK
       
-      try { const auth = getAuth(app); // signInAnonymously - REST API no auth needed } catch(e) { console.log("Auth skipped"); }
+      try { // REST API - no auth needed // signInAnonymously - REST API no auth needed } catch(e) { console.log("Auth skipped"); }
       // REST API - no SDK
-    } catch(e) { console.warn("Cloud error:", e); setCloudUI(false); }
+    } catch(e) { // Cloud error logged setCloudUI(false); }
   }
 
-  function startPolling() { setInterval(async () => { try { const r = await fetch(FSBASE + '?key=' + FSKEY); if (!r.ok) return; const d = await r.json(); const arr = d.fields && d.fields.projectsArray ? d.fields.projectsArray.arrayValue.values || [] : []; window.projects = arr.map(v => v.stringValue ? JSON.parse(v.stringValue) : fsVal(v)); window.renderGrid(); window.checkAlerts(); if (window.curProjId) window.openProject(window.curProjId); setCloudUI(true); } catch(e) { setCloudUI(false); } }, 30000); } function setupFirestoreListener() {
+  function startPolling() { setInterval(async () => { try { const r = await fetch(FSBASE + '?key=' + FSKEY); if (!r.ok) return; const d = await r.json(); const arr = d.fields && d.fields.projectsArray ? d.fields.projectsArray.arrayValue.values || [] : []; window.projects = arr.map(v => v.stringValue ? JSON.parse(v.stringValue) : fsVal(v)); window.renderGrid(); window.checkAlerts(); if (window.curProjId) window.openProject(window.curProjId); setCloudUI(true); } catch(e) { setCloudUI(false); } }, 30000); } function setupFirestoreListener() { /* REST API - no Firestore listener */
        const _t = setTimeout(() => { setCloudUI(false); }, 8000);
-    // removed onSnapshot {
-      if (docSnap.exists()) { window.projects = docSnap.data().projectsArray || []; } else { window.projects = []; }
+    return; } /* REST API */ {
+      // if (docSnap.exists()) { window.projects = docSnap.data().projectsArray || []; } else { window.projects = []; }
       window.renderGrid(); window.checkAlerts(); if (window.curProjId) window.openProject(window.curProjId);
 clearTimeout(_t);       setCloudUI(true);
     }, (error) => { console.error("Cloud error:", error); setCloudUI(false); });
