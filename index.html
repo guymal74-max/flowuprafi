@@ -399,7 +399,7 @@ clearTimeout(_t);       setCloudUI(true);
     else { badge.className = 'cloud-status error'; txt.textContent = 'מצב מקומי'; dot.className = 'cloud-dot'; }
   }
 
-  window.saveData = async function() { try { const body = { fields: { projectsArray: { arrayValue: { values: window.projects.map(p => ({ stringValue: JSON.stringify(p) })) } } } }; const r = await fetch(FSBASE + '?key=' + FSKEY, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); if (!r.ok) throw new Error('HTTP ' + r.status); window.showToast('✅ נשמר בענן'); } catch(e) { console.warn('Save error:', e); localStorage.setItem('rafi_projects_local', JSON.stringify(window.projects)); window.showToast('💾 נשמר מקומית'); } }; window._saveData_ORIG = async function() {
+  window.saveData = async function() { try { const body = { fields: { projectsArray: { arrayValue: { values: window.projects.map(p => ({ stringValue: JSON.stringify(p) })) } } } }; const r = await fetch(FSBASE + '?key=' + FSKEY, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); if (!r.ok) throw new Error('HTTP ' + r.status); window.showToast('✅ נשמר בענן'); } catch(e) { console.warn('Save error:', e); localStorage.setItem('rafi_projects_local', JSON.stringify(window.projects)); window.showToast('💾 נשמר מקומית'); } }; window._saveData_OLD_unused = async function() {
     if (db && mainDocRef) {
       try { await setDoc(mainDocRef, { projectsArray: window.projects }); window.showToast("✅ נשמר בענן"); } 
       catch (e) { window.showToast("❌ שגיאת שמירה בענן", false); }
